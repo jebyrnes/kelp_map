@@ -50,8 +50,7 @@ server <- function(input, output){
   
   ## A reactive for data
   dat <- reactive({
-     print(m |>
-             filter(ecoregion %in% input$map_shape_click$id))
+    # print(m |>   filter(ecoregion %in% input$map_shape_click$id))
     
     if(length(input$map_shape_click$id)==0) return(NA)
 
@@ -130,8 +129,8 @@ server <- function(input, output){
         ungroup()
       )
     
-    print( dat() )
-    print( input$show_fields)
+    #print( dat() )
+    #print( input$show_fields)
    # data.frame(hello = 1)
     
     dat() |> 
