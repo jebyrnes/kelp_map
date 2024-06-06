@@ -1,11 +1,11 @@
 library(shiny)
 library(sf)
-# library(mregions) #devtools::install_github("ropensci/mregions")
-pacman::p_load_gh("ropensci/mregions")
+library(mregions) #devtools::install_github("ropensci/mregions")
 library(dplyr)
 library(leaflet)
 library(tidyr)
 library(readxl)
+library(bslib)
 
 ###
 ## Load up the data
@@ -30,12 +30,16 @@ ui <- fluidPage(
   titlePanel("Kelp Environmental Tolerances", 
              windowTitle = "Kelp Environmental Tolerances"),
   
-  leafletOutput("map"),
+  HTML("Click on an ecoregion to see information about the local genera of kelp's environmental tolerances.<br><br>"),
+  HTML("See <a href=https://gmed.auckland.ac.nz/layersd.html>here</a> for definition of environmental fields."),
   
-  uiOutput("field_select"),
+  layout_columns(
+    leafletOutput("map"),
   
-  tableOutput("kelp_info")
-  
+    layout_columns(uiOutput("field_select"),
+                   tableOutput("kelp_info"),
+                   col_widths = c(12, 12))
+  )  
   
 )
 
@@ -61,7 +65,10 @@ server <- function(input, output){
   ## An output for active fields
   output$field_select <- renderUI({
     if(length(input$map_shape_click$id)==0){
-      return("") #blank return if nothing selected
+      return(    selectizeInput("show_fields",
+                                "Choose what fields you wish to explore:",
+                                choices = "",
+                                multiple = TRUE)) #blank return if nothing selected
     }
 
     # otherwise...
@@ -69,7 +76,7 @@ server <- function(input, output){
       pull(name) |>
       unique()
 
-   list( HTML("See <a href=https://gmed.auckland.ac.nz/layersd.html>here</a> for field definitions."),
+   list( 
 
     selectizeInput("show_fields",
                    "Choose what fields you wish to explore:",
@@ -112,7 +119,17 @@ server <- function(input, output){
   })
   
   output$kelp_info <- renderTable({
-    if(length(input$show_fields)==0) return(NULL)
+    if(nrow(dat()|>as_tibble())==0) return(NULL)
+    
+    if(length(input$show_fields)==0) return(
+      dat() |> 
+        as_tibble() |>
+        dplyr::select(genus) |>
+        group_by(genus) |>
+        slice(1L) |>
+        ungroup()
+      )
+    
     print( dat() )
     print( input$show_fields)
    # data.frame(hello = 1)
