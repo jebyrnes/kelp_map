@@ -119,7 +119,7 @@ server <- function(input, output){
   })
   
   output$kelp_info <- renderTable({
-    if(nrow(dat()|>as_tibble())==0) return(NULL)
+    if(is.null(dat())) return(NULL)
     
     if(length(input$show_fields)==0) return(
       dat() |> 
